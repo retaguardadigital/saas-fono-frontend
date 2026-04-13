@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -9,9 +10,8 @@ export default function Home() {
   const [users, setUsers] = useState<any[]>([]);
 
   async function loadUsers() {
-    const res = await fetch('http://161.97.147.252:3001/users');
-    const data = await res.json();
-    setUsers(data);
+    const { data } = await supabase.from('users').select('*');
+    setUsers(data || []);
   }
 
   useEffect(() => {
@@ -21,16 +21,16 @@ export default function Home() {
   async function handleSubmit(e: any) {
     e.preventDefault();
 
-    const res = await fetch('http://161.97.147.252:3001/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, password }),
-    });
+    const { error } = await supabase.from('users').insert([
+      { name, email, password }
+    ]);
 
-    if (!res.ok) {
+    if (error) {
       alert('Erro ao criar');
       return;
     }
+
+    alert('Usuário criado!');
 
     setName('');
     setEmail('');
@@ -41,12 +41,9 @@ export default function Home() {
 
   async function handleDelete(id: number) {
     const confirmDelete = confirm('Deseja excluir?');
-
     if (!confirmDelete) return;
 
-    await fetch(`http://161.97.147.252:3001/users/${id}`, {
-      method: 'DELETE',
-    });
+    await supabase.from('users').delete().eq('id', id);
 
     loadUsers();
   }
@@ -86,12 +83,13 @@ export default function Home() {
       <h2>Lista</h2>
 
       {users.map((u) => (
-        <div key={u.id} style={{ marginBottom: 10 }}>
+        <div key={u.id}>
           <strong>{u.name}</strong> ({u.email})
           <br />
           <button onClick={() => handleDelete(u.id)}>
             Excluir
           </button>
+          <hr />
         </div>
       ))}
     </div>
