@@ -9,9 +9,14 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [users, setUsers] = useState<any[]>([]);
   const [message, setMessage] = useState('');
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   async function loadUsers() {
-    const { data } = await supabase.from('users').select('*').order('id', { ascending: false });
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .order('id', { ascending: false });
+
     setUsers(data || []);
   }
 
@@ -22,26 +27,56 @@ export default function Home() {
   async function handleSubmit(e: any) {
     e.preventDefault();
 
-    const { error } = await supabase
-      .from('users')
-      .insert([{ name, email, password }]);
+    if (editingUser) {
+      const { error } = await supabase
+        .from('users')
+        .update({ name, email, password })
+        .eq('id', editingUser.id);
 
-    if (error) {
-      setMessage('❌ Erro ao criar usuário');
-      return;
+      if (error) {
+        setMessage('❌ Erro ao atualizar');
+        return;
+      }
+
+      setMessage('✅ Usuário atualizado!');
+      setEditingUser(null);
+    } else {
+      const { error } = await supabase
+        .from('users')
+        .insert([{ name, email, password }]);
+
+      if (error) {
+        setMessage('❌ Erro ao criar usuário');
+        return;
+      }
+
+      setMessage('✅ Usuário criado!');
     }
 
-    setMessage('✅ Usuário criado com sucesso!');
     setName('');
     setEmail('');
     setPassword('');
-
     loadUsers();
+  }
+
+  function handleEdit(user: any) {
+    setEditingUser(user);
+    setName(user.name);
+    setEmail(user.email);
+    setPassword(user.password);
+    setMessage('');
   }
 
   async function handleDelete(id: number) {
     await supabase.from('users').delete().eq('id', id);
     loadUsers();
+  }
+
+  function cancelEdit() {
+    setEditingUser(null);
+    setName('');
+    setEmail('');
+    setPassword('');
   }
 
   return (
@@ -80,10 +115,24 @@ export default function Home() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className={`w-full py-2 rounded-lg text-white transition ${
+              editingUser
+                ? 'bg-yellow-500 hover:bg-yellow-600'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            Criar
+            {editingUser ? 'Atualizar' : 'Criar'}
           </button>
+
+          {editingUser && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="w-full bg-gray-400 text-white py-2 rounded-lg"
+            >
+              Cancelar edição
+            </button>
+          )}
         </form>
 
         <hr className="my-6" />
@@ -101,12 +150,21 @@ export default function Home() {
                 <p className="text-sm text-gray-500">{u.email}</p>
               </div>
 
-              <button
-                onClick={() => handleDelete(u.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
-              >
-                Excluir
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(u)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"
+                >
+                  Editar
+                </button>
+
+                <button
+                  onClick={() => handleDelete(u.id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+                >
+                  Excluir
+                </button>
+              </div>
             </div>
           ))}
         </div>
