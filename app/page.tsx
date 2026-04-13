@@ -26,9 +26,10 @@ export default function Home() {
     ]);
 
     if (error) {
-      alert('Erro ao criar');
-      return;
-    }
+  console.log('ERRO SUPABASE:', error);
+  alert(error.message);
+  return;
+}
 
     alert('Usuário criado!');
 
