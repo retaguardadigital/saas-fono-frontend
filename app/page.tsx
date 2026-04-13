@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
-  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [users, setUsers] = useState<any[]>([]);
 
@@ -18,35 +18,31 @@ export default function Home() {
     loadUsers();
   }, []);
 
-async function handleSubmit(e: any) {
-  e.preventDefault();
+  async function handleSubmit(e: any) {
+    e.preventDefault();
 
-  const { data, error } = await supabase
-    .from('users')
-    .insert([{ name, email, password }]);
+    const { error } = await supabase
+      .from('users')
+      .insert([{ name, email, password }]);
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
-  alert('Usuário criado!');
-  setName('');
-  setEmail('');
-  setPassword('');
-}
+    alert('Usuário criado!');
+    setName('');
+    setEmail('');
+    setPassword('');
     loadUsers();
   }
 
   async function handleDelete(id: number) {
-    const confirmDelete = confirm('Deseja excluir?');
-    if (!confirmDelete) return;
-
     await supabase.from('users').delete().eq('id', id);
-
     loadUsers();
   }
 
+  // ✅ O RETURN TEM QUE ESTAR AQUI DENTRO
   return (
     <div style={{ padding: 40, maxWidth: 600, margin: 'auto' }}>
       <h1>Usuários</h1>
