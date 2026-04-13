@@ -3,17 +3,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-export default function Dashboard() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p className="mt-2 text-gray-600">
-        Bem-vindo ao seu sistema 👋
-      </p>
-    </div>
-  );
-}
-
 export default function Home() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
