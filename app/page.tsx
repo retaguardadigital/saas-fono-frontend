@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
 
   async function loadUsers() {
-    const { data } = await supabase.from('users').select('*');
+    const { data } = await supabase.from('users').select('*').order('id', { ascending: false });
     setUsers(data || []);
   }
 
@@ -21,22 +22,20 @@ export default function Home() {
   async function handleSubmit(e: any) {
     e.preventDefault();
 
-console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log('KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
     const { error } = await supabase
       .from('users')
       .insert([{ name, email, password }]);
 
     if (error) {
-      alert(error.message);
+      setMessage('❌ Erro ao criar usuário');
       return;
     }
 
-    alert('Usuário criado!');
+    setMessage('✅ Usuário criado com sucesso!');
     setName('');
     setEmail('');
     setPassword('');
+
     loadUsers();
   }
 
@@ -45,51 +44,73 @@ console.log('KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     loadUsers();
   }
 
-  // ✅ O RETURN TEM QUE ESTAR AQUI DENTRO
   return (
-    <div style={{ padding: 40, maxWidth: 600, margin: 'auto' }}>
-      <h1>Usuários</h1>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="w-full max-w-lg bg-white p-6 rounded-2xl shadow-lg">
+        <h1 className="text-2xl font-bold mb-4 text-center">Usuários</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Nome"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <br /><br />
+        {message && (
+          <div className="mb-4 text-center text-sm text-green-600">
+            {message}
+          </div>
+        )}
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br /><br />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            className="w-full border p-2 rounded-lg"
+            placeholder="Nome"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-        <input
-          placeholder="Senha"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br /><br />
+          <input
+            className="w-full border p-2 rounded-lg"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <button type="submit">Criar</button>
-      </form>
+          <input
+            className="w-full border p-2 rounded-lg"
+            placeholder="Senha"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-      <hr />
-
-      <h2>Lista</h2>
-
-      {users.map((u) => (
-        <div key={u.id}>
-          <strong>{u.name}</strong> ({u.email})
-          <br />
-          <button onClick={() => handleDelete(u.id)}>
-            Excluir
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Criar
           </button>
-          <hr />
+        </form>
+
+        <hr className="my-6" />
+
+        <h2 className="text-lg font-semibold mb-3">Lista</h2>
+
+        <div className="space-y-2">
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border"
+            >
+              <div>
+                <p className="font-medium">{u.name}</p>
+                <p className="text-sm text-gray-500">{u.email}</p>
+              </div>
+
+              <button
+                onClick={() => handleDelete(u.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+              >
+                Excluir
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
