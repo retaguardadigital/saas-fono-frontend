@@ -21,6 +21,9 @@ export default function Home() {
   async function handleSubmit(e: any) {
     e.preventDefault();
 
+console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log('KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
     const { error } = await supabase
       .from('users')
       .insert([{ name, email, password }]);
