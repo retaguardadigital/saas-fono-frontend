@@ -18,25 +18,23 @@ export default function Home() {
     loadUsers();
   }, []);
 
-  async function handleSubmit(e: any) {
-    e.preventDefault();
+async function handleSubmit(e: any) {
+  e.preventDefault();
 
-    const { error } = await supabase.from('users').insert([
-      { name, email, password }
-    ]);
+  const { data, error } = await supabase
+    .from('users')
+    .insert([{ name, email, password }]);
 
-    if (error) {
-  console.log('ERRO SUPABASE:', error);
-  alert(error.message);
-  return;
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert('Usuário criado!');
+  setName('');
+  setEmail('');
+  setPassword('');
 }
-
-    alert('Usuário criado!');
-
-    setName('');
-    setEmail('');
-    setPassword('');
-
     loadUsers();
   }
 
